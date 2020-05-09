@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+
+    <!--别名-->
+    <typeAliases>
+        <package name="xin.entity"/>
+    </typeAliases>
+
+    <!-- 加载映射文件 -->
+    <!--<mappers>-->
+        <!--&lt;!&ndash;批量扫描，加载映射文件，必须用mapper代理， .xml和.java在同个包下&ndash;&gt;-->
+        <!--<package name="xin.dao"></package>-->
+    <!--</mappers>-->
+
+</configuration>

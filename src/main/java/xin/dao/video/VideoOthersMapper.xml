@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xin.dao.video.VideoOthersMapper">
+
+    <resultMap id="VideoResponseMap" type="xin.entity.video.VideoResponse">
+        <id column="video_id" property="videoId" />
+        <result column="user_id" property="userId" />
+        <result column="synopsis" property="synopsis" />
+        <result column="title" property="title" />
+        <result column="category" property="category" />
+        <result column="uploadTime" property="uploadTime" />
+        <result column="videoPath" property="videoPath" />
+        <result column="imgPath" property="imgPath" />
+        <result column="address" property="address" />
+        <!--点赞举报浏览量-->
+        <result column="like_cnt" property="likeCnt" />
+        <result column="report_cnt" property="reportCnt" />
+        <result column="browse_cnt" property="browseCnt" />
+    </resultMap>
+
+
+
+    <!--查询全国/本校的热门文娱活动视频-->
+    <select id="hotEntertainmentVideos" parameterType="xin.entity.video.VideoRequest" resultMap="VideoResponseMap">
+        SELECT videos.*,lrb_cnt.like_cnt,lrb_cnt.report_cnt,lrb_cnt.browse_cnt FROM videos,lrb_cnt,user WHERE
+        videos.video_id=lrb_cnt.video_id AND videos.category='生活文娱' AND #{lastTime}>videos.uploadTime
+         AND videos.user_id=user.id
+        <!--判断是查询全国还是本校-->
+        <if test="address!=null">
+            AND videos.address=#{address}
+        </if>
+        GROUP BY videos.video_id
+        ORDER BY lrb_cnt.like_cnt DESC
+        LIMIT #{currentPage},#{amount}
+    </select>
+
+    <!--按类别查询全国/本校的视频（时间顺序）-->
+    <select id="categoryVideos" parameterType="xin.entity.video.VideoRequest" resultMap="VideoResponseMap">
+        SELECT videos.*,lrb_cnt.like_cnt,lrb_cnt.report_cnt,lrb_cnt.browse_cnt FROM videos,lrb_cnt,user WHERE
+        videos.video_id=lrb_cnt.video_id AND videos.category=#{video.category} AND #{lastTime}>videos.uploadTime
+        AND videos.video_id=lrb_cnt.video_id AND videos.user_id=user.id
+        <!--判断是查询全国还是本校-->
+        <if test="address!=null">
+            AND videos.address=#{address}
+        </if>
+        ORDER BY videos.uploadTime DESC
+        LIMIT #{currentPage},#{amount}
+    </select>
+
+    <!--title模糊查询视频-->
+    <select id="searchVideosByTitle" parameterType="xin.entity.video.VideoRequest" resultMap="VideoResponseMap">
+        SELECT videos.*,lrb_cnt.like_cnt,lrb_cnt.report_cnt,lrb_cnt.browse_cnt FROM videos,lrb_cnt,user WHERE
+        #{lastTime}>videos.uploadTime AND (videos.title LIKE #{video.title}) AND videos.video_id=lrb_cnt.video_id AND videos.user_id=user.id
+        <!--判断查询全国还是本校，1还是2-->
+        <if test="currentUserRoleId==1">
+            AND videos.address=#{address}
+        </if>
+        ORDER BY videos.uploadTime DESC
+        LIMIT #{currentPage},#{amount}
+    </select>
+
+
+</mapper>

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xin.dao.comment.CommentReplyMapper">
+
+    <resultMap id="ReplyResponseMap" type="xin.entity.comment.reply.ReplyResponse">
+        <!--reply_data-->
+        <id column="reply_id" property="commentId" />
+        <result column="comment_id" property="commentId" />
+        <result column="aim_user_id" property="aimUserId" />
+        <result column="user_id" property="userId" />
+        <result column="createTime" property="createTime" />
+        <result column="replyContent" property="replyContent" />
+        <!--user-->
+        <result column="userName" property="userName" />
+    </resultMap>
+
+
+    <!--插入回复-->
+    <insert id="addReply" parameterType="xin.entity.comment.reply.ReplyRequest">
+        <!--返回自增主键-->
+        <selectKey keyProperty="replyId" order="AFTER" resultType="int">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        INSERT INTO reply_data (comment_id,aim_user_id,user_id,replyContent)
+        VALUE (#{reply.commentId},#{reply.aimUserId},#{userId},#{reply.replyContent})
+    </insert>
+
+    <!--查询回复,没有被回复者昵称-->
+    <select id="inquireReplys" parameterType="xin.entity.comment.reply.ReplyRequest" resultMap="ReplyResponseMap">
+        SELECT reply_data.*,user.userName FROM reply_data INNER JOIN user
+        ON reply_data.comment_id=#{reply.commentId} AND #{lastTime}>reply_data.createTime AND reply_data.user_id=user.id
+        ORDER BY reply_data.createTime ASC limit #{currentPage},#{amount}
+    </select>
+
+    <!--查询被回复者昵称-->
+    <select id="inquireReplyAimUserName" parameterType="int" resultType="String">
+        SELECT userName FROM user WHERE id=#{value}
+    </select>
+
+    <!--以replyId精确查询某一条一级评论-->
+    <select id="inquireReplyById" parameterType="int" resultMap="ReplyResponseMap">
+        SELECT reply_data.*,user.userName FROM reply_data INNER JOIN user ON
+        reply_id=#{value} AND reply_data.user_id=user.id
+    </select>
+
+    <!--删除回复-->
+    <delete id="deleteReply" parameterType="int">
+        DELETE FROM  reply_data WHERE reply_id=#{value}
+    </delete>
+</mapper>

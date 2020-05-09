@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xin.dao.video.VideoEnterpiseMapper">
+    <resultMap id="VideoResponseMap" type="xin.entity.video.VideoResponse">
+        <id column="video_id" property="videoId" />
+        <result column="user_id" property="userId" />
+        <result column="synopsis" property="synopsis" />
+        <result column="title" property="title" />
+        <result column="category" property="category" />
+        <result column="uploadTime" property="uploadTime" />
+        <result column="videoPath" property="videoPath" />
+        <result column="imgPath" property="imgPath" />
+        <result column="address" property="address" />
+        <!--点赞举报浏览量-->
+        <result column="like_cnt" property="likeCnt" />
+        <result column="report_cnt" property="reportCnt" />
+        <result column="browse_cnt" property="browseCnt" />
+    </resultMap>
+
+    <!--查询全国的热门校园招聘视频-->
+    <select id="countrywideRecruitHotVideos" parameterType="xin.entity.video.VideoRequest" resultMap="VideoResponseMap">
+        SELECT videos.*,lrb_cnt.like_cnt,lrb_cnt.report_cnt,lrb_cnt.browse_cnt FROM videos,lrb_cnt,user WHERE
+        videos.video_id=lrb_cnt.video_id AND videos.category='校园招聘' AND #{lastTime}>videos.uploadTime
+        AND videos.user_id=user.id
+        GROUP BY videos.video_id
+        ORDER BY lrb_cnt.like_cnt DESC
+        LIMIT #{currentPage},#{amount}
+    </select>
+
+    <!--查询某个学校的校园招聘视频（时间顺序）-->
+    <select id="searchUniversityRecruitVideos" parameterType="xin.entity.video.VideoRequest" resultMap="VideoResponseMap">
+        SELECT videos.*,lrb_cnt.like_cnt,lrb_cnt.report_cnt,lrb_cnt.browse_cnt FROM videos,lrb_cnt,user WHERE
+        videos.video_id=lrb_cnt.video_id AND videos.user_id=user.id AND videos.category='校园招聘' AND #{lastTime}>videos.uploadTime
+        AND videos.address=#{address}
+        ORDER BY videos.uploadTime DESC
+        LIMIT #{currentPage},#{amount}
+    </select>
+
+</mapper>

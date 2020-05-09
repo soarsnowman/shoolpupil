@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+    <!--原始日期类-->
+    <bean id="timePrimit" class="java.util.Date"></bean>
+
+    <!--验证码类-->
+    <bean id="verifyCode" class="xin.util.VerifyCode"></bean>
+
+    <!--视频上传工具类-->
+    <bean id="videoUploadTool" class="xin.util.VideoUploadTool"></bean>
+
+    <!--视频转码类-->
+    <bean id="transfMediaTool" class="xin.util.TransfMediaTool"></bean>
+
+</beans>

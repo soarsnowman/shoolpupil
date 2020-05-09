@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xin.dao.comment.CommentMapper">
+
+    <resultMap id="FirstCommentResponseMap" type="xin.entity.comment.firstComment.FirstCommentResponse">
+        <id column="comment_id" property="commentId" />
+        <result column="video_id" property="videoId" />
+        <result column="user_id" property="userId" />
+        <result column="userName" property="userName" />
+        <result column="picture" property="picture" />
+        <result column="commentContent" property="commentContent" />
+        <result column="createTime" property="createTime" />
+    </resultMap>
+
+    <!--插入评论-->
+    <insert id="addComment" parameterType="xin.entity.comment.firstComment.FirstCommnetRequest">
+        <!--返回自增主键-->
+        <selectKey keyProperty="commentId" order="AFTER" resultType="int">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        INSERT INTO comment (video_id,user_id,commentContent) VALUE (#{firstComment.videoId},#{userId},#{firstComment.commentContent})
+    </insert>
+
+    <!--查询一级评论-->
+    <select id="inquireComments" parameterType="xin.entity.comment.firstComment.FirstCommnetRequest" resultMap="FirstCommentResponseMap">
+        SELECT comment.*,user.userName,user.picture FROM comment INNER JOIN user
+        ON comment.video_id=#{firstComment.videoId} AND #{lastTime}>comment.createTime AND comment.user_id=user.id
+        ORDER BY comment.createTime DESC limit #{currentPage},#{amount}
+    </select>
+
+    <!--查询某条一级评论有多少条回复-->
+    <select id="inquireReplyCnt" parameterType="int" resultType="int">
+        SELECT count(*) FROM reply_data WHERE comment_id=#{value}
+    </select>
+
+    <!--以commentId精确查询某一条一级评论-->
+    <select id="inquireCommentById" parameterType="int" resultMap="FirstCommentResponseMap">
+        SELECT comment.*,user.userName,user.picture FROM comment INNER JOIN user
+        ON comment.comment_id=#{value} AND comment.user_id=user.id
+    </select>
+
+    <!--删除一级评论-->
+    <delete id="deleteComment" parameterType="int">
+        DELETE FROM comment WHERE comment_id=#{value};
+        DELETE FROM reply_data WHERE comment_id=#{value};
+    </delete>
+</mapper>

@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="
+        http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+         http://www.springframework.org/schema/aop
+         http://www.springframework.org/schema/aop/spring-aop-4.1.xsd
+         http://www.springframework.org/schema/tx
+         http://www.springframework.org/schema/tx/spring-tx-4.1.xsd
+           http://www.springframework.org/schema/context
+         http://www.springframework.org/schema/context/spring-context-4.1.xsd  " >
+
+    <!--1.配置SecurityManager-->
+    <bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+        <property name="realm" ref="jdbcRealm"/>
+    </bean>
+
+    <!--
+        3.配置realm
+        3.1实现了Realm接口
+    -->
+    <bean id="jdbcRealm" class="xin.shiro.realm.ShiroRealm">
+        <property name="credentialsMatcher">
+            <bean class="org.apache.shiro.authc.credential.HashedCredentialsMatcher">
+                <property name="hashAlgorithmName" value="MD5"></property>
+                <property name="hashIterations" value="1024"></property>
+            </bean>
+        </property>
+    </bean>
+
+
+    <!--
+    保证实现了shiro内部lifecycle函数的bean执行
+    4.配置lifecycleBeanPostProcessor
+    -->
+    <bean id="lifecycleBeanPostProcessor" class="org.apache.shiro.spring.LifecycleBeanPostProcessor"/>
+
+    <!--5.只有在4配置了才能使用，启用IOC容器的注解-->
+    <bean class="org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator"
+          depends-on="lifecycleBeanPostProcessor"/>
+    <bean class="org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor">
+        <property name="securityManager" ref="securityManager"/>
+    </bean>
+
+    <!--
+    6.配置shiroFilter
+    6.1 id必须和web.xml文件中配置的DelegatingFilterProxy的name一致
+    -->
+    <bean id="shiroFilter" class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">
+        <!--Shiro的核心安全接口，这个属性是必须的-->
+        <property name="securityManager" ref="securityManager"/>
+        <!--身份认证失败则跳转到指定页面-->
+        <property name="loginUrl" value="/user/notLoggedIn"/>
+        <!--权限认证失败，则跳转到制定页面-->
+        <property name="unauthorizedUrl" value="/user/noPermission"/>
+        <property name="filters">
+            <map>
+                <entry key="roles">
+                    <bean
+                            class="xin.shiro.filter.CustomRolesAuthorizationFilter" />
+                </entry>
+            </map>
+        </property>
+
+        <property name="filterChainDefinitionMap" ref="filterChainDefinitionMap"></property>
+    </bean>
+
+    <!--
+    配置一个bean，该bean实际上是一个Map，通过实例工厂的方式
+    就是realm
+    -->
+    <bean id="filterChainDefinitionMap"
+          factory-bean="filterChainDefinitionMapBuilder" factory-method="buildFilterChainDefinitionMap"></bean>
+
+    <bean id="filterChainDefinitionMapBuilder"
+          class="xin.shiro.factory.FilterChainDefinitionMapBuilder"></bean>
+
+</beans>

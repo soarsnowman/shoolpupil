@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                        http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+                        http://www.springframework.org/schema/context
+                        http://www.springframework.org/schema/context/spring-context-3.1.xsd
+                        http://www.springframework.org/schema/mvc
+                        http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd">
+
+    <!-- 自动扫描该包，使SpringMVC认为包下用了@controller注解的类是控制器 -->
+    <context:component-scan base-package="xin.controller" />
+
+
+    <!--<mvc:annotation-driven conversion-service="conversionService"></mvc:annotation-driven>-->
+    <mvc:annotation-driven></mvc:annotation-driven>
+
+    <!--视图解析-->
+    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver"></bean>
+
+    <mvc:resources mapping="/images/**" location="/images/"></mvc:resources>
+
+    <mvc:resources mapping="/film/**" location="/film/"></mvc:resources>
+
+    <mvc:resources mapping="/swagger/**" location="/WEB-INF/swagger/"/>
+
+    <!--SWAGGER-->
+    <bean class="com.mangofactory.swagger.configuration.SpringSwaggerConfig" />
+
+    <!--配置文件上传解析器-->
+    <bean id="multipartResolver"
+        class="xin.util.PhotoCommonsMultipartResolver">
+        <!--文件大小(5242880=5M)，500M，全局，其实是针对视频，头像在类中特殊照顾-->
+        <property name="maxUploadSize">
+            <value>524288000</value>
+        </property>
+        <!--请求编码格式，与jsp的pageEncoding一致，默认为ISO-8856-1-->
+        <property name="defaultEncoding">
+            <value>UTF-8</value>
+        </property>
+    </bean>
+
+
+</beans>

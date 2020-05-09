@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xin.dao.video.VideoCommonMapper">
+
+    <resultMap id="VideoResponseMap" type="xin.entity.video.VideoResponse">
+        <id column="video_id" property="videoId" />
+        <result column="user_id" property="userId" />
+        <result column="synopsis" property="synopsis" />
+        <result column="title" property="title" />
+        <result column="category" property="category" />
+        <result column="uploadTime" property="uploadTime" />
+        <result column="videoPath" property="videoPath" />
+        <result column="imgPath" property="imgPath" />
+        <result column="address" property="address" />
+        <!--点赞举报浏览量-->
+        <result column="like_cnt" property="likeCnt" />
+        <result column="report_cnt" property="reportCnt" />
+        <result column="browse_cnt" property="browseCnt" />
+    </resultMap>
+
+
+
+    <!--上传视频-->
+    <insert id="uploadVideo" parameterType="xin.entity.video.VideoRequest">
+        <!--返回自增主键-->
+        <selectKey keyProperty="videoId" order="AFTER" resultType="int">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        INSERT INTO videos (user_id,address,synopsis,title,category,videoPath,imgPath)
+        VALUE (#{currentUserId},#{address},#{video.synopsis},#{video.title},#{video.category},#{videoPath},#{imgPath})
+    </insert>
+
+    <!--插入点赞举报浏览总数表-->
+    <insert id="insertLikeReportCnt" parameterType="int">
+        INSERT INTO lrb_cnt (video_id) VALUE (#{value});
+    </insert>
+
+
+    <!--通过videoId查询视频-->
+    <select id="searchVideosByVideoId" parameterType="int" resultMap="VideoResponseMap">
+        SELECT videos.*,lrb_cnt.like_cnt,lrb_cnt.report_cnt,lrb_cnt.browse_cnt FROM videos,lrb_cnt,user WHERE
+        videos.video_id=#{videoId} AND videos.video_id=lrb_cnt.video_id AND videos.user_id=user.id
+    </select>
+
+    <!--*********************************点赞举报浏览量专区*****************************************-->
+    <!--视频点赞-->
+    <insert id="addLike" parameterType="xin.entity.video.VideoRequest">
+        INSERT INTO like_data (video_id,user_id) VALUE (#{videoId},#{currentUserId})
+    </insert>
+    <!--点赞总数加1-->
+    <update id="addLikeCnt" parameterType="xin.entity.video.VideoRequest">
+        UPDATE lrb_cnt SET like_cnt=like_cnt+1 WHERE video_id=#{videoId};
+    </update>
+
+    <!--视频举报-->
+    <insert id="addReport" parameterType="xin.entity.video.VideoRequest">
+        INSERT INTO report_data (video_id,user_id) VALUE (#{videoId},#{currentUserId})
+    </insert>
+    <!--举报总数加1-->
+    <update id="addReportCnt" parameterType="xin.entity.video.VideoRequest">
+        UPDATE lrb_cnt SET report_cnt=report_cnt+1 WHERE video_id=#{videoId};
+    </update>
+
+    <!--增加浏览量-->
+    <insert id="addBrowse" parameterType="xin.entity.video.VideoRequest">
+        INSERT INTO browse_data (video_id,user_id) VALUE (#{videoId},#{currentUserId})
+    </insert>
+    <!--浏览量总数加1-->
+    <update id="addBrowseCnt" parameterType="xin.entity.video.VideoRequest">
+        UPDATE lrb_cnt SET browse_cnt=browse_cnt+1 WHERE video_id=#{videoId};
+    </update>
+    <!--*********************************点赞举报浏览量专区*****************************************-->
+
+
+    <!--模糊查询title-->
+    <select id="selectTitle" parameterType="String" resultType="String">
+        SELECT title FROM videos  WHERE title LIKE #{value} GROUP BY title
+    </select>
+
+    <!--个人视频-->
+    <select id="personalVideos" parameterType="xin.entity.video.VideoRequest" resultMap="VideoResponseMap">
+        SELECT videos.*,lrb_cnt.like_cnt,lrb_cnt.report_cnt,lrb_cnt.browse_cnt FROM videos,lrb_cnt,user WHERE
+        videos.video_id=lrb_cnt.video_id  AND videos.user_id=user.id AND user_id=#{currentUserId}
+            <if test="video.category!=''">
+                AND videos.category=#{video.category}
+            </if>
+        ORDER BY videos.uploadTime DESC limit #{currentPage},#{amount}
+    </select>
+
+
+    <!--删除视频-->
+    <delete id="deleteVideo" parameterType="int">
+        DELETE FROM videos WHERE video_id=#{value};
+        DELETE FROM like_data WHERE video_id=#{value};
+        DELETE FROM report_data WHERE video_id=#{value};
+        DELETE FROM browse_data WHERE video_id=#{value};
+        DELETE FROM lrb_cnt WHERE video_id=#{value};
+    </delete>
+
+
+
+
+    <!--查询是否点赞过-->
+    <select id="inquireLiked" parameterType="xin.entity.video.VideoRequest" resultType="int">
+        SELECT COUNT(*) FROM like_data WHERE video_id=#{videoId} AND user_id=#{currentUserId}
+    </select>
+
+    <!--查询是否举报过-->
+    <select id="inquireRepoted" parameterType="xin.entity.video.VideoRequest" resultType="int">
+        SELECT COUNT(*) FROM report_data WHERE video_id=#{videoId} AND user_id=#{currentUserId}
+    </select>
+
+</mapper>
